@@ -24,13 +24,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         // Do any additional setup after loading the view, typically from a nib.
     }
     
-    // func prepareMatrixforTheGam(){
-    //     for (var i:int =0;i<4;i++){
-    //         for(var j:int =0;j<4;j++)
-    //
-    //     }
-    
-    // }
+   
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -82,7 +76,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             
             //wait 2 sec
-            setFaceDownWrongCell(collectionView)
+            let time=dispatch_time(dispatch_time_t(DISPATCH_TIME_NOW), 1*Int64(NSEC_PER_SEC))
+            dispatch_after(time, dispatch_get_main_queue()){
+            self.setFaceDownWrongCell(collectionView)
+            }
+            
             
         }
         
@@ -104,7 +102,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 let  c1=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
                 if(c1.isFaceUp)
                 {
-                    c1.lblCelltext.text = charMatrix[j][i]
+                    //c1.lblCelltext.text = charMatrix[j][i]
                     c1.hidden=true
                 }
                 else{
