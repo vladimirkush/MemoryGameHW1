@@ -12,16 +12,18 @@ import UIKit
 
 class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
-    var currentPlayer = "X"
+    var unflippedLabel = "X"
     var charArray = ["A","A","B","B","C","C","D","D","E","E","F","F","G","G","H","H"]
     var charMatrix = [["a","b","c","d"],["x","y","z","w"],["a","b","c","d"],["x","y","z","w"]]
-    var clickCount=0
+    var clickCount = 0
     var cell1 = [0,0]
-    var elapsedSeconds=0
-    var score=1000
+    var elapsedSeconds = 0
+    var score = 1000
     var timer: NSTimer!
+    var isPaused = false
     @IBOutlet weak var lblTimer: UILabel!
     @IBOutlet weak var lblScore: UILabel!
+    @IBOutlet weak var collectionViewRef: UICollectionView!
     
     
     
@@ -32,24 +34,15 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         super.viewDidLoad()
         lblTimer.text = "00:00"
         lblScore.text = "\(score)"
-        var arrayCounter = 0
-        // Do any additional setup after loading the view, typically from a nib.
-       charArray = charArray.shuffle()
-        for(var i=0;i<4;i++){
-            for (var j=0;j<4;j++)
-            {
-                charMatrix[i][j] = charArray[arrayCounter]
-                arrayCounter++
-            }
-            
-        }
         
-        timer = NSTimer.scheduledTimerWithTimeInterval( 1.0, target: self, selector:"updateCountdown", userInfo: nil, repeats: true)
+        prepareCells()
         
-
+        timer = NSTimer.scheduledTimerWithTimeInterval( 1.0, target: self, selector:"updateTimer", userInfo: nil, repeats: true)
+        
+        
     }
     
-    func updateCountdown() {
+    func updateTimer() {
         
         elapsedSeconds++;
         let minutes = elapsedSeconds/60
@@ -61,15 +54,53 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             score--
             lblScore.text = "\(score)"
         }
-        
-        
-        if elapsedSeconds == 0 {
-            self.timer.invalidate()
-            self.timer = nil
-            lblTimer.text="00:00"
+    }
+    
+    func prepareCells(){
+        var arrayCounter = 0
+
+        charArray = charArray.shuffle()
+        for(var i=0;i<4;i++){
+            for (var j=0;j<4;j++){
+                charMatrix[i][j] = charArray[arrayCounter]
+                arrayCounter++
+                }
+            
         }
     }
+    
+    func checkGameEnded(collectionView: UICollectionView)->Bool{
+       
+        for(var i=0;i<4;i++){
+            for (var j=0;j<4;j++){
+                let  c=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
+                if !c.isFaceUp{
+                    return false
+                }
+                
+            }
+            
+        }
+        return true;
+
+    }
+    
+    func setNewGame(collectionView: UICollectionView){
+        for(var i=0;i<4;i++){
+            for (var j=0;j<4;j++){
+                let  c=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
+                c.isFaceUp=false;
+                c.hidden=false
+                c.lblCelltext.text = unflippedLabel
+                
+            }
+            
+        }
+        
+    }
+    
    
+    
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -88,7 +119,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("CellID", forIndexPath: indexPath) as! CollectionViewCell
         //here we setting the initial text
         if(!cell.isFaceUp){
-            cell.lblCelltext.text = "X"}
+            cell.lblCelltext.text = unflippedLabel}
         else{
             cell.lblCelltext.text=charMatrix[indexPath.section][indexPath.row]}
         
@@ -116,13 +147,17 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                 c1.isFaceUp=true
                 
             }
-            setCellsEnabledCells(collectionView, enabled: false)
+            setCellsEnabled(collectionView, enabled: false)
             
             //wait 1 sec
             let time=dispatch_time(dispatch_time_t(DISPATCH_TIME_NOW), 1*Int64(NSEC_PER_SEC))
             dispatch_after(time, dispatch_get_main_queue()){
                 self.setFaceDownWrongCell(collectionView)
-                self.setCellsEnabledCells(collectionView, enabled: true)
+                self.setCellsEnabled(collectionView, enabled: true)
+                
+                if self.checkGameEnded(collectionView){
+                    self.finishGame()
+                }
             }
             
             
@@ -132,23 +167,29 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         //NSiindexpath is an index object
     }
     
+    func finishGame(){
+        timer.invalidate()
+        
+        alertWin()
+        
+    }
+    
     func checkFlipedCells(cell1:String, cell2:String )->Bool{
         
         return cell1 == cell2
     }
     
-    func setCellsEnabledCells(collectionView: UICollectionView, enabled: Bool){
+    func setCellsEnabled(collectionView: UICollectionView, enabled: Bool){
         
         for(var i=0;i<4;i++){
             for (var j=0;j<4;j++){
                 let  c=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
                 c.userInteractionEnabled=enabled;
-
             }
-            
         }
-
     }
+    
+   
     
     
     
@@ -164,20 +205,67 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
                     c1.hidden=true
                 }
                 else{
-                    c1.lblCelltext.text = "X"
+                    c1.lblCelltext.text = unflippedLabel
                 }
                 
             }
             
         }
-
+        
         
         
         
     }
     
-
+    func alertWin(){
+        let alertController = UIAlertController(title: "!!! You Have Won !!!", message:
+            "Your score: \(score)", preferredStyle: UIAlertControllerStyle.Alert)
+        alertController.addAction(UIAlertAction(title: "I'm the one who knocks!", style: UIAlertActionStyle.Default){
+            action -> Void in
+            self.restartGame()
+            self.timer = NSTimer.scheduledTimerWithTimeInterval( 1.0, target: self, selector:"updateTimer", userInfo: nil, repeats: true)
+            })
+        
+        self.presentViewController(alertController, animated: true, completion:nil)
+    }
+    
+    @IBAction func onPauseTap(sender: UIButton) {
+        if isPaused{
+            timer = NSTimer.scheduledTimerWithTimeInterval( 1.0, target: self, selector:"updateTimer", userInfo: nil, repeats: true)
+            setCellsEnabled(collectionViewRef, enabled: true)
+            isPaused=false
+            sender.setTitle("Pause", forState: .Normal)
+        
+            
+        }else{
+            timer.invalidate()
+            setCellsEnabled(collectionViewRef, enabled: false)
+            isPaused=true
+            sender.setTitle("Resume", forState: .Normal)
+        }
+    }
+    
+    @IBAction func onRestartTap(sender: AnyObject) {
+        restartGame()
+    }
+    
+    func restartGame(){
+        elapsedSeconds = 0
+        score = 1000
+        lblTimer.text = "00:00"
+        
+       
+        prepareCells()
+        setCellsEnabled(collectionViewRef, enabled: true)
+        setNewGame(collectionViewRef)
+        
+        
+    }
+    
+    
 }
+
+
 
 // MARK: extention methods
 
