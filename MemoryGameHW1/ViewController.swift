@@ -2,8 +2,8 @@
 //  ViewController.swift
 //  MemoryGameHW1
 //
-//  Created by Admin on 04/03/2016.
-//  Copyright © 2016 Admin. All rights reserved.
+//  Created by Seiran (317101541) and Vladimir (327149621) on 25/03/2016.
+//  Copyright © 2016 Seiran and Vladimir. All rights reserved.
 //
 
 import UIKit
@@ -16,7 +16,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     var charArray = ["A","A","B","B","C","C","D","D","E","E","F","F","G","G","H","H"]
     var charMatrix = [["a","b","c","d"],["x","y","z","w"],["a","b","c","d"],["x","y","z","w"]]
     var clickCount = 0
-    var cell1 = [0,0]
+    var firstCell = [0,0]
     var elapsedSeconds = 0
     var score = 1000
     var timer: NSTimer!
@@ -36,14 +36,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         lblScore.text = "\(score)"
         
         prepareCells()
-        
         timer = NSTimer.scheduledTimerWithTimeInterval( 1.0, target: self, selector:"updateTimer", userInfo: nil, repeats: true)
-        
-        
     }
     
+    
     func updateTimer() {
-        
         elapsedSeconds++;
         let minutes = elapsedSeconds/60
         let seconds = elapsedSeconds % 60
@@ -73,8 +70,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
        
         for(var i=0;i<4;i++){
             for (var j=0;j<4;j++){
-                let  c=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
-                if !c.isFaceUp{
+                let  cell=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
+                if !cell.isFaceUp{
                     return false
                 }
                 
@@ -88,15 +85,12 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     func setNewGame(collectionView: UICollectionView){
         for(var i=0;i<4;i++){
             for (var j=0;j<4;j++){
-                let  c=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
-                c.isFaceUp=false;
-                c.hidden=false
-                c.lblCelltext.text = unflippedLabel
-                
+                let  cell=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
+                cell.isFaceUp=false;
+                cell.hidden=false
+                cell.lblCelltext.text = unflippedLabel
             }
-            
         }
-        
     }
     
    
@@ -129,22 +123,22 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         print("Row \(indexPath.row), section: \(indexPath.section)")
-        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! CollectionViewCell
+        let currentCell = collectionView.cellForItemAtIndexPath(indexPath) as! CollectionViewCell
         clickCount++
-        cell.lblCelltext.text=charMatrix[indexPath.section][indexPath.row]
+        currentCell.lblCelltext.text=charMatrix[indexPath.section][indexPath.row]
         
         if(clickCount==1){
-            cell1[0]=indexPath.section
-            cell1[1]=indexPath.row
+            firstCell[0]=indexPath.section
+            firstCell[1]=indexPath.row
         }
             
         else if(clickCount==2){
             clickCount=0
-            if(checkFlipedCells(charMatrix[indexPath.section][indexPath.row],cell2: charMatrix[cell1[0]][cell1[1]]) && !(indexPath.section == cell1[0] &&  cell1[1] == indexPath.row)){
-                cell.isFaceUp=true
+            if(checkFlipedCells(charMatrix[indexPath.section][indexPath.row],cell2: charMatrix[firstCell[0]][firstCell[1]]) && !(indexPath.section == firstCell[0] &&  firstCell[1] == indexPath.row)){
+                currentCell.isFaceUp=true
                 
-                let  c1=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: cell1[1], inSection: cell1[0])) as! CollectionViewCell
-                c1.isFaceUp=true
+                let  savedCell=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: firstCell[1], inSection: firstCell[0])) as! CollectionViewCell
+                savedCell.isFaceUp=true
                 
             }
             setCellsEnabled(collectionView, enabled: false)
@@ -188,24 +182,20 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             }
         }
     }
-    
-   
-    
-    
-    
+
     
     func setFaceDownWrongCell(collectionView: UICollectionView){
         
         for(var i=0;i<4;i++){
             for (var j=0;j<4;j++)
             {
-                let  c1=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
-                if(c1.isFaceUp)
+                let  cell=collectionView.cellForItemAtIndexPath(NSIndexPath(forRow: i, inSection: j)) as! CollectionViewCell
+                if(cell.isFaceUp)
                 {
-                    c1.hidden=true
+                    cell.hidden=true
                 }
                 else{
-                    c1.lblCelltext.text = unflippedLabel
+                    cell.lblCelltext.text = unflippedLabel
                 }
                 
             }
