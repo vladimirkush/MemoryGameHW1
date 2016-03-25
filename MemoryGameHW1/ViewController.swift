@@ -18,8 +18,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     var clickCount=0
     var cell1 = [0,0]
     var elapsedSeconds=0
+    var score=1000
     var timer: NSTimer!
     @IBOutlet weak var lblTimer: UILabel!
+    @IBOutlet weak var lblScore: UILabel!
     
     
     
@@ -29,6 +31,7 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     override func viewDidLoad() {
         super.viewDidLoad()
         lblTimer.text = "00:00"
+        lblScore.text = "\(score)"
         var arrayCounter = 0
         // Do any additional setup after loading the view, typically from a nib.
        charArray = charArray.shuffle()
@@ -53,6 +56,12 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         let seconds = elapsedSeconds % 60
         
         lblTimer.text=String(format: "%02d:%02d", minutes, seconds)
+        
+        if elapsedSeconds%5==0{
+            score--
+            lblScore.text = "\(score)"
+        }
+        
         
         if elapsedSeconds == 0 {
             self.timer.invalidate()
